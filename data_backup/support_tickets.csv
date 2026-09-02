@@ -1,0 +1,52 @@
+month,region,product_id,ticket_count,avg_sentiment_score,sample_ticket_text
+2026-04,North,SKU-101,8,0.396,Packaging was tidy and delivery tracking was accurate.
+2026-04,North,SKU-102,13,0.11,"Product is fine, delivery estimate slipped a few days."
+2026-04,North,SKU-103,5,0.247,Customer support swapped my size in two days. Impressed.
+2026-04,North,SKU-104,11,0.313,Customer support swapped my size in two days. Impressed.
+2026-04,South,SKU-101,13,0.207,Customer support swapped my size in two days. Impressed.
+2026-04,South,SKU-102,8,0.278,"Exactly as described, arrived fast. Would buy again."
+2026-04,South,SKU-103,19,0.249,Great quality for the price - my third order this year.
+2026-04,South,SKU-104,11,0.345,Customer support swapped my size in two days. Impressed.
+2026-04,West,SKU-101,8,0.1,"Product is fine, delivery estimate slipped a few days."
+2026-04,West,SKU-102,10,0.351,Packaging was tidy and delivery tracking was accurate.
+2026-04,West,SKU-103,3,0.2,Packaging was tidy and delivery tracking was accurate.
+2026-04,West,SKU-104,15,0.391,Customer support swapped my size in two days. Impressed.
+2026-05,North,SKU-101,7,0.366,"Exactly as described, arrived fast. Would buy again."
+2026-05,North,SKU-102,11,0.21,"Exactly as described, arrived fast. Would buy again."
+2026-05,North,SKU-103,13,0.453,"Exactly as described, arrived fast. Would buy again."
+2026-05,North,SKU-104,15,0.259,"Exactly as described, arrived fast. Would buy again."
+2026-05,South,SKU-101,16,0.352,Customer support swapped my size in two days. Impressed.
+2026-05,South,SKU-102,16,0.397,Packaging was tidy and delivery tracking was accurate.
+2026-05,South,SKU-103,9,0.406,Great quality for the price - my third order this year.
+2026-05,South,SKU-104,19,0.002,"Product is fine, delivery estimate slipped a few days."
+2026-05,West,SKU-101,8,0.192,Great quality for the price - my third order this year.
+2026-05,West,SKU-102,3,0.22,Packaging was tidy and delivery tracking was accurate.
+2026-05,West,SKU-103,7,0.113,Decent value but the color looks different in person.
+2026-05,West,SKU-104,11,0.23,Packaging was tidy and delivery tracking was accurate.
+2026-06,North,SKU-101,15,0.508,"Exactly as described, arrived fast. Would buy again."
+2026-06,North,SKU-102,11,0.058,Decent value but the color looks different in person.
+2026-06,North,SKU-103,3,0.217,Customer support swapped my size in two days. Impressed.
+2026-06,North,SKU-104,13,0.367,Great quality for the price - my third order this year.
+2026-06,South,SKU-101,12,0.289,"Exactly as described, arrived fast. Would buy again."
+2026-06,South,SKU-102,14,0.044,Decent value but the color looks different in person.
+2026-06,South,SKU-103,14,0.369,Great quality for the price - my third order this year.
+2026-06,South,SKU-104,9,0.311,Packaging was tidy and delivery tracking was accurate.
+2026-06,West,SKU-101,9,0.281,"Exactly as described, arrived fast. Would buy again."
+2026-06,West,SKU-102,10,0.111,Decent value but the color looks different in person.
+2026-06,West,SKU-103,13,0.287,"Exactly as described, arrived fast. Would buy again."
+2026-06,West,SKU-104,11,0.323,"Exactly as described, arrived fast. Would buy again."
+2026-07,North,SKU-101,13,0.234,"Exactly as described, arrived fast. Would buy again."
+2026-07,North,SKU-102,4,0.348,Packaging was tidy and delivery tracking was accurate.
+2026-07,North,SKU-103,17,0.083,"Product is fine, delivery estimate slipped a few days."
+2026-07,North,SKU-104,10,0.146,"Works as expected, nothing special either way."
+2026-07,North,SKU-NEW-01,9,0.033,"Works as expected, nothing special either way."
+2026-07,South,SKU-101,25,-0.498,"Courier says delayed, no new date given. Frustrating."
+2026-07,South,SKU-102,32,-0.503,"Ordered two weeks ago, still no delivery and no update."
+2026-07,South,SKU-103,27,-0.551,Package stuck 'in transit' for 12 days now. Support unreachable.
+2026-07,South,SKU-104,22,-0.58,"Ordered two weeks ago, still no delivery and no update."
+2026-07,South,SKU-NEW-01,37,-0.582,"Ordered two weeks ago, still no delivery and no update."
+2026-07,West,SKU-101,8,0.121,"Works as expected, nothing special either way."
+2026-07,West,SKU-102,10,0.465,Great quality for the price - my third order this year.
+2026-07,West,SKU-103,9,0.254,Great quality for the price - my third order this year.
+2026-07,West,SKU-104,8,0.191,Packaging was tidy and delivery tracking was accurate.
+2026-07,West,SKU-NEW-01,9,0.24,Great quality for the price - my third order this year.

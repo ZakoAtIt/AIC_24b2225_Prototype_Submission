@@ -1,0 +1,222 @@
+{
+  "_meta": {
+    "description": "Single source of truth for KPI semantics. The backend loads this file and enforces thresholds, allowed methods and access policy AT RUNTIME.",
+    "version": "1.0.0"
+  },
+  "kpis": [
+    {
+      "kpi_id": "net_revenue",
+      "name": "Net Revenue",
+      "formula": "sum(units_sold * unit_price) - sum(returns_value)",
+      "unit": "USD",
+      "owner": "VP Sales",
+      "dimensions": [
+        "region",
+        "product",
+        "channel"
+      ],
+      "time_grain": "daily",
+      "sources": [
+        "pos_transactions"
+      ],
+      "freshness_sla_hours": 24,
+      "materiality_threshold_pct": 3.0,
+      "statistical_threshold_zscore": 2.0,
+      "known_drivers": [
+        "price",
+        "volume",
+        "mix",
+        "returns_rate",
+        "marketing_spend",
+        "competitor_activity"
+      ],
+      "controllable_drivers": [
+        "price",
+        "marketing_spend"
+      ],
+      "access_policy": {
+        "row_level": "region",
+        "restricted_columns": []
+      },
+      "lineage": [
+        "pos_transactions.raw -> daily_aggregation -> net_revenue"
+      ],
+      "analytical_methods_allowed": [
+        "waterfall_decomposition",
+        "STL_anomaly",
+        "DiD_causal_test"
+      ],
+      "confidence_policy": {
+        "abstain_below": 0.6
+      }
+    },
+    {
+      "kpi_id": "gross_margin_pct",
+      "name": "Gross Margin %",
+      "formula": "(sum(units_sold * (unit_price - unit_cost)) - sum(returns_value)) / sum(units_sold * unit_price) * 100",
+      "unit": "percent",
+      "owner": "CFO Office",
+      "dimensions": [
+        "region",
+        "product"
+      ],
+      "time_grain": "daily",
+      "sources": [
+        "pos_transactions"
+      ],
+      "freshness_sla_hours": 24,
+      "materiality_threshold_pct": 2.0,
+      "statistical_threshold_zscore": 2.0,
+      "known_drivers": [
+        "price",
+        "cogs_mix",
+        "returns_rate",
+        "discounting"
+      ],
+      "controllable_drivers": [
+        "price"
+      ],
+      "access_policy": {
+        "row_level": "region",
+        "restricted_columns": [
+          "unit_cost"
+        ]
+      },
+      "lineage": [
+        "pos_transactions.raw -> daily_aggregation -> gross_margin_pct"
+      ],
+      "analytical_methods_allowed": [
+        "waterfall_decomposition",
+        "STL_anomaly"
+      ],
+      "confidence_policy": {
+        "abstain_below": 0.6
+      }
+    },
+    {
+      "kpi_id": "units_sold",
+      "name": "Units Sold",
+      "formula": "sum(units_sold)",
+      "unit": "units",
+      "owner": "Head of Operations",
+      "dimensions": [
+        "region",
+        "product",
+        "channel"
+      ],
+      "time_grain": "daily",
+      "sources": [
+        "pos_transactions"
+      ],
+      "freshness_sla_hours": 24,
+      "materiality_threshold_pct": 3.0,
+      "statistical_threshold_zscore": 2.0,
+      "known_drivers": [
+        "price_elasticity",
+        "marketing_spend",
+        "seasonality",
+        "stockouts",
+        "competitor_activity"
+      ],
+      "controllable_drivers": [
+        "marketing_spend"
+      ],
+      "access_policy": {
+        "row_level": "region",
+        "restricted_columns": []
+      },
+      "lineage": [
+        "pos_transactions.raw -> daily_aggregation -> units_sold"
+      ],
+      "analytical_methods_allowed": [
+        "STL_anomaly",
+        "DiD_causal_test"
+      ],
+      "confidence_policy": {
+        "abstain_below": 0.6
+      }
+    },
+    {
+      "kpi_id": "return_rate",
+      "name": "Return Rate",
+      "formula": "sum(returns_units) / sum(units_sold) * 100",
+      "unit": "percent",
+      "owner": "Head of Fulfillment",
+      "dimensions": [
+        "region",
+        "product"
+      ],
+      "time_grain": "daily",
+      "sources": [
+        "pos_transactions"
+      ],
+      "freshness_sla_hours": 24,
+      "materiality_threshold_pct": 8.0,
+      "statistical_threshold_zscore": 2.5,
+      "known_drivers": [
+        "product_quality",
+        "logistics_delays",
+        "sizing_issues",
+        "seasonality"
+      ],
+      "controllable_drivers": [
+        "logistics_performance"
+      ],
+      "access_policy": {
+        "row_level": "region",
+        "restricted_columns": []
+      },
+      "lineage": [
+        "pos_transactions.raw -> daily_aggregation -> return_rate"
+      ],
+      "analytical_methods_allowed": [
+        "STL_anomaly",
+        "DiD_causal_test"
+      ],
+      "confidence_policy": {
+        "abstain_below": 0.6
+      }
+    },
+    {
+      "kpi_id": "customer_acquisition_cost",
+      "name": "Customer Acquisition Cost",
+      "formula": "sum(spend_usd) / sum(new_customers_attributed)",
+      "unit": "USD_per_customer",
+      "owner": "VP Growth",
+      "dimensions": [
+        "region",
+        "channel"
+      ],
+      "time_grain": "weekly",
+      "sources": [
+        "marketing_spend"
+      ],
+      "freshness_sla_hours": 168,
+      "materiality_threshold_pct": 5.0,
+      "statistical_threshold_zscore": 2.0,
+      "known_drivers": [
+        "marketing_spend_efficiency",
+        "channel_mix",
+        "competitor_cpm_inflation",
+        "creative_fatigue"
+      ],
+      "controllable_drivers": [
+        "marketing_spend"
+      ],
+      "access_policy": {
+        "row_level": "region",
+        "restricted_columns": []
+      },
+      "lineage": [
+        "marketing_spend.raw -> weekly_rollup -> customer_acquisition_cost"
+      ],
+      "analytical_methods_allowed": [
+        "STL_anomaly",
+        "DiD_causal_test"
+      ],
+      "confidence_policy": {
+        "abstain_below": 0.6
+      }
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "_meta": {
+    "warning": "GROUND TRUTH - debug/test artifact only. The analysis pipeline (app/pipeline/*) must NEVER read this file. It powers the /events debug endpoint and automated recovery tests.",
+    "seed": 42,
+    "world": "2026-04-01 .. 2026-07-29",
+    "scenario": "default"
+  },
+  "events": [
+    {
+      "event_id": "E1",
+      "name": "Competitor promotion",
+      "type": "competitor_activity",
+      "region": "South",
+      "start": "2026-07-17",
+      "end": "2026-07-29",
+      "effect": {
+        "units_multiplier": 0.75,
+        "scope": "all SKUs"
+      },
+      "expected_signature": "South units/revenue dip of roughly -25%, ongoing through DEMO_NOW"
+    },
+    {
+      "event_id": "E2",
+      "name": "List price increase (+8%)",
+      "type": "price_change",
+      "region": "South",
+      "start": "2026-07-20",
+      "end": null,
+      "effect": {
+        "price_multiplier": 1.08,
+        "skus": [
+          "SKU-101",
+          "SKU-102"
+        ],
+        "elasticity_units_divisor": 1.02
+      },
+      "expected_signature": "Higher unit price on SKU-101/SKU-102 in South; mild unit softness on treated SKUs only - identifiable vs the promo via within-region comparison"
+    },
+    {
+      "event_id": "E3",
+      "name": "Logistics delay",
+      "type": "supply_disruption",
+      "region": "West",
+      "start": "2026-07-19",
+      "end": "2026-07-29",
+      "effect": {
+        "units_multiplier": 0.9,
+        "return_rate_add_pp": 4.0
+      },
+      "expected_signature": "West units dip ~-10%; return rate spiked by ~+4.0pp relative"
+    },
+    {
+      "event_id": "E1b",
+      "name": "Defensive media surge",
+      "type": "marketing_spend_change",
+      "region": "South",
+      "start": "2026-07-13",
+      "end": "2026-07-12",
+      "effect": {
+        "spend_multiplier": 2.2,
+        "channel": "paid_social",
+        "cac_penalty": 1.35
+      },
+      "expected_signature": "South paid_social spend spike; CAC inflation same weeks"
+    },
+    {
+      "event_id": "E4",
+      "name": "Fulfillment complaint wave",
+      "type": "sentiment_shift",
+      "region": "South",
+      "start": "2026-07-01",
+      "end": "2026-07-31",
+      "effect": {
+        "avg_sentiment": -0.55,
+        "ticket_multiplier": 2.5
+      },
+      "note": "CONTRADICTION CASE: unstructured signal negative while structured sales show no material movement yet."
+    },
+    {
+      "event_id": "E5",
+      "name": "New product launch",
+      "type": "launch",
+      "region": "North",
+      "start": "2026-07-09",
+      "end": null,
+      "skus": [
+        "SKU-NEW-01"
+      ],
+      "note": "Sparse-history scenario: 21 days of history at DEMO_NOW."
+    }
+  ]
+}

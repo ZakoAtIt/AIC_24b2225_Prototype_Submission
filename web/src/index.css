@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-slate-50 text-slate-800 antialiased font-sans;
+}
+
+.card {
+  @apply bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm shadow-slate-200/50;
+}
+
+.btn {
+  @apply px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40;
+}
+.btn-indigo { @apply btn bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm; }
+.btn-ghost  { @apply btn bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200; }
+
+.tab {
+  @apply px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition-colors;
+}
+.tab-active   { @apply tab bg-indigo-50 text-indigo-700 font-semibold px-4 py-2.5 rounded-lg text-left text-sm transition-colors w-full; }
+.tab-inactive { @apply tab text-gray-600 hover:bg-gray-100 font-medium px-4 py-2.5 rounded-lg text-left text-sm transition-colors w-full; }
+
+.chip {
+  @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+}
+.chip-red        { @apply chip bg-rose-50 text-rose-700 border border-rose-200; }
+.chip-emerald    { @apply chip bg-emerald-50 text-emerald-700 border border-emerald-200; }
+.chip-amber      { @apply chip bg-amber-50 text-amber-700 border border-amber-200; }
+.chip-slate      { @apply chip bg-slate-100 text-slate-700 border border-slate-200; }
+.chip-indigo     { @apply chip bg-indigo-50 text-indigo-700 border border-indigo-200; }
+.chip-violet     { @apply chip bg-violet-50 text-violet-700 border border-violet-200; }
+
+.th { @apply text-left text-[10px] uppercase tracking-wider text-slate-500 font-bold px-4 py-3 bg-slate-50 border-b border-gray-200; }
+.td { @apply px-4 py-2 text-xs text-slate-700 border-b border-gray-100 tabular-nums; }
+
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
