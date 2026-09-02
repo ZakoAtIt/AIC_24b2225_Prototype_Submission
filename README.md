@@ -1,124 +1,130 @@
 # CauseTrace
-**KPI Intelligence-to-Action Engine**
 
-*Accenture Innovation Challenge 2026 - BusinessIntelligence.ai Track*
+**A KPI intelligence engine that explains *why* your numbers moved — without ever letting an LLM make up a number.**
 
-CauseTrace is an enterprise-grade, deterministic intelligence engine that monitors business KPIs, detects *material* movements, mathematically decomposes their root causes, and generates actionable narratives.
+Most "AI BI" tools ask an LLM to look at a chart and narrate it. The problem is that LLMs are fluent, not accurate — they'll happily invent a percentage that sounds right but isn't. CauseTrace takes a different approach: every number in the system is computed by deterministic code first. The LLM is only ever handed numbers that already exist and asked to explain them in plain English. If it tries to introduce a number that isn't in our evidence store, that output gets thrown away and replaced with a safe, pre-written template instead.
 
-We built CauseTrace on one uncompromising architectural rule to solve the hallucination crisis in BI:
-> **The LLM explains numbers it is given; it never produces them.** Every quantitative claim must trace back to our deterministic Evidence Registry, or the system safely abstains.
+That one rule — **the LLM explains, it never calculates** — shapes everything else in this project.
 
 ---
 
-## 🏆 Judging Rubric Alignment
+## What it actually does
 
-We engineered this prototype to explicitly fulfill every requirement and "Real-World Complexity" outlined in the prompt:
+Point CauseTrace at your business data (sales, marketing spend, support tickets — anything with a timestamp) and it will:
 
-| Requirement | How CauseTrace Delivers |
-| :--- | :--- |
-| **1. Detects & Prioritizes** | Uses **STL decomposition** and weekday-paired Z-scores to separate trend from seasonality. We rank by statistical urgency, ignoring calendar noise. |
-| **2. Heterogeneous Sources** | Reconciles 3 different grains & SLAs: Daily POS (24h SLA), Weekly Marketing spend (168h SLA), and Monthly unstructured Support Tickets (720h SLA). |
-| **3. Identifies Drivers** | Rejects basic correlation in favor of **Layered Difference-in-Differences (DiD)** causal inference and exact arithmetic **Waterfall decomposition**. |
-| **4. Persona Narratives** | Generates CFO Briefs (high-level stories) and Analyst Tables (deep mathematical dives). Enforced by the `ALL NUMBERS TRACED` registry badge. |
-| **5. Abstains on Uncertainty** | Our **Contradiction Guard** dynamically drops confidence and quarantines the LLM if evidence is missing or conflicts (e.g., margins rise while sentiment crashes). |
-| **6. Action Recommendations** | Maps drivers to *Controllable Levers*, calculating expected $ impact (via waterfall reversal), assigning owners, and setting monitoring plans. |
-| **7. Continuous Learning** | **Human-in-the-Loop** feedback dropdown maps analyst corrections to our semantic ontology, saving to DuckDB to permanently tune live confidence weights. |
-| **8. Realistic Constraints** | Sub-50ms latency via in-memory DuckDB. Built-in **Telemetry** tracks every token, LLM call, and fraction of a cent. **Drift Monitoring (PSI)** alerts engineers to re-fit baselines. |
+1. **Spot the movements that actually matter.** Not every wiggle in a KPI is worth flagging — weekends, month-end, and seasonal patterns all cause "noise" that looks like a spike if you're not careful. We decompose each series into trend/seasonality/residual (STL) and compare against the same day-of-week historically, so a Saturday is only ever compared to other Saturdays.
+
+2. **Break down exactly what caused a change.** If revenue dropped 8%, how much of that is fewer customers vs. lower prices vs. a shift in what people bought vs. more returns? We compute an exact waterfall (price × volume × mix × returns) so the components always add up to the total — no hand-waving.
+
+3. **Test whether a suspected cause is real.** A competitor promo in one region and a support outage in another can hit your numbers in the same week. We use difference-in-differences — comparing the affected region against an unaffected "control" region over the same period — to isolate each effect instead of guessing which one mattered more.
+
+4. **Know when it doesn't know enough.** If the data needed to explain a movement is missing, stale, or contradicts itself (e.g. margins are up but customer sentiment is cratering), the system lowers its own confidence score and will refuse to generate a narrative rather than bluff. It asks for the missing piece instead.
+
+5. **Turn the diagnosis into next steps.** Each identified driver maps to a controllable lever (e.g. "price" → "run a targeted discount"), with an estimated dollar impact, a suggested owner, and what to keep an eye on afterward.
+
+6. **Get better with use.** When an analyst corrects or confirms a finding, that feedback is stored and used to adjust confidence weighting going forward — the system's calibration shifts with real-world corrections instead of staying static.
+
+7. **Speak differently to different audiences.** A CFO gets a short, plain-language brief. An analyst gets the full breakdown with every intermediate number shown and traceable.
 
 ---
 
-## 🧠 Core Architecture (The "One-Slide" View)
+## How data flows through the system
 
-CauseTrace isolates the Language Model to Stage 8. It relies on a rigorous 9-stage data engineering pipeline governed by a **Semantic Contract** (`kpi_contracts.json`).
-
-```text
- CSV sources ──► 1 load_and_validate ──► 2 semantic_resolver (RBAC)
-                                              │
-              3 detection_engine ◄────────────┘  STL + paired-weekday z/pct gates
-                     │                           scipy p-values | fallback: rolling z
-               4 decomposition_engine            exact price/volume/mix/returns
-                     │                           waterfall (identity asserted)
-              5 causal_engine                    layered DiD A/B/C/D/E tests
-                     │                           clarity from control agreement
-              6 confidence_engine                weighted composite + tiers +
-                     │                           contradiction guard -> ABSTAIN
-              7 action_engine                    driver -> lever -> action ->
-                     │                           impact -> owner -> monitoring
-              8 llm_narrative  ◄── ONLY LLM STEP strict JSON, anti-hallucination
-                     │                           validator + response cache
-              9 persona_router                   CFO brief vs analyst tables
+```
+raw CSVs
+   │
+   ▼
+1. load & validate ─────────── checks schema, types, freshness per source
+   │
+2. semantic resolver ────────── maps raw columns to known KPI definitions,
+   │                             applies role-based access (an analyst only
+   │                             sees their region; costs are masked)
+   │
+3. anomaly detection ────────── STL decomposition + weekday-matched z-scores
+   │                             (falls back to a simpler rolling z-score for
+   │                             brand-new products with too little history)
+   │
+4. decomposition ────────────── exact price / volume / mix / returns waterfall
+   │
+5. causal testing ────────────── difference-in-differences across control groups
+   │                             to isolate overlapping effects
+   │
+6. confidence scoring ────────── weighs how much evidence supports each finding;
+   │                             contradicting or missing evidence lowers the
+   │                             score and can trigger an abstain
+   │
+7. action mapping ────────────── driver → lever → recommended action → owner
+   │
+8. narration (LLM) ──────────── the ONLY step that touches a language model.
+   │                             Output is strict JSON, and every number in it
+   │                             is checked against what was actually computed
+   │                             in steps 3–7. Anything that doesn't match is
+   │                             discarded and replaced with a template.
+   │
+9. persona routing ───────────── formats the (validated) result as a CFO brief
+                                  or a full analyst breakdown
 ```
 
-## 🌟 Key Differentiators & Real-World Complexities Solved
+Everything before step 8 is plain Python — pandas, numpy, scipy, statsmodels. Nothing in there can hallucinate because none of it is a language model. Step 8 is deliberately the only place an LLM touches the pipeline, and its output is checked, not trusted.
 
-### 1. Synthetic Data Generation & Ground Truth
-We didn't just hardcode a CSV. We engineered `generate_data.py`—a Python-based synthetic world generator that simulates a multi-region retail business. We mathematically planted specific ground-truth events (logistics delays, competitor promos, price elasticity changes) so we could rigorously test our engine's precision and recall.
-
-### 2. The Anti-Hallucination Firewall
-Before the LLM is called, the pipeline registers every computed fact. When the LLM returns a narrative, a regex validator checks every number against the Evidence Registry. If the LLM hallucinates or rounds incorrectly, the validation fails, the LLM payload is dropped, and a safe Python template is served instead.
-
-### 3. Exact Arithmetic Waterfall & Layered DiD
-KPIs have interacting variables. We don't guess.
-
-- **Waterfall:** We compute an exact Price, Volume, Mix, and Return breakdown to attribute the exact dollar impact of a movement.
-- **Layered DiD:** We use multi-control group Difference-in-Differences tests to mathematically isolate overlapping shocks (e.g., using the North region as a control to isolate a Competitor Promo in the South, then subtracting a known Price Elasticity effect to find the true impact).
-
-### 4. Sparse History Handling
-For newly launched products (e.g., SKU-NEW-01 with only 21 days of data), the engine recognizes that STL requires 4 seasonal cycles. Instead of breaking, it safely degrades to a rolling Z-score fallback.
-
-### 5. Enterprise Security (RBAC)
-Switching to the Analyst persona triggers Row and Column-Level Security. The workspace locks to the Analyst's specific region, and sensitive metrics (like `unit_cost`) are physically masked from the payload.
-
-### 6. Text-to-Math Reconciliation
-We process unstructured text (support tickets) deterministically. We calculate a Sentiment Z-score drift. Only if the math proves a significant drop in sentiment do we use a keyword retrieval stage to pull the exact contextual ticket snippet to augment the LLM's prompt.
+We also built our own synthetic data generator (`generate_data.py`) that simulates a multi-region retail business with specific, known events baked in (a logistics delay, a competitor promo, a price change) — that way we can check the pipeline actually finds the causes we planted, not just plausible-looking ones.
 
 ---
 
-## 🚀 Quickstart & Setup Guide
+## Running it locally
 
-### Prerequisites
-- Python 3.10+
-- Node.js 18+
+You'll need:
+- **Python 3.10+**
+- **Node.js 18+**
 
-### 1. Environment Configuration
-Create a `.env` file in the root directory:
+These steps work the same on Windows, macOS, and Linux — the only difference is how you activate a Python virtual environment (noted below).
+
+### 1. Set up your environment file
+
+From the project root:
 
 ```bash
 cp .env.example .env
 ```
 
-Ensure the following variables are set in your `.env` file:
+Open `.env` and check these values:
 
 ```ini
-# Freezes the demo clock so pipeline SLAs compute accurately against the generated data.
+# A fixed "current time" so freshness/SLA checks are consistent against the
+# sample data. Only relevant if you're using the bundled sample dataset.
 DEMO_NOW=2026-07-30
 
-# We recommend using 'mock' for local evaluation to guarantee 100% deterministic,
-# zero-latency narration without needing an API key.
-# To use a live LLM, change this to 'gemini' and provide a GEMINI_API_KEY.
+# 'mock' runs entirely offline with deterministic, instant responses —
+# no API key needed, good for just trying things out.
+# Set this to 'gemini' and add GEMINI_API_KEY below to use a real LLM
+# for the narration step.
 LLM_PROVIDER=mock
 ```
 
-### 2. Backend Setup (FastAPI + DuckDB)
-Open a terminal in the root directory:
+### 2. Start the backend (FastAPI + DuckDB)
 
 ```bash
-# Create and activate virtual environment
+# from the project root
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
+# activate it:
+source .venv/bin/activate        # macOS / Linux
+.venv\Scripts\activate           # Windows (Command Prompt or PowerShell)
+
 pip install -r requirements.txt
 
-# Generate the synthetic world (seeded for absolute reproducibility)
+# generate the sample dataset (skip this if you're plugging in your own data)
 python generate_data.py --scenario default
 
-# Start the API
+# start the API
 python -m uvicorn app.main:app --port 8000
 ```
 
-### 3. Frontend Setup (React + Vite)
-Open a second terminal:
+The API is now running at `http://localhost:8000`.
+
+### 3. Start the frontend (React + Vite)
+
+In a **second terminal**, from the project root:
 
 ```bash
 cd web
@@ -126,46 +132,55 @@ npm install
 npm run dev
 ```
 
-The application will be running at http://localhost:5173.
+Open `http://localhost:5173` in your browser. It talks to the backend automatically.
+
+### Using your own data instead of the sample set
+
+Drop CSVs matching the schema described in `kpi_contracts.json` into the expected data folder and skip the `generate_data.py` step. The semantic resolver will validate the schema on load and tell you specifically what's missing or mistyped if something doesn't match.
 
 ---
 
-## 🧪 Chaos Testing Guide (For Judges)
+## Trying out the failure-handling behavior
 
-We built a live chaos-injection script to prove our pipeline reacts to real-world data pipeline failures dynamically, rather than relying on hardcoded UI mockups.
+The interesting part of this project isn't the happy path — it's what happens when data goes wrong. There's a script that simulates real pipeline problems (a data source going missing, a schema change, an outlier flooding in) so you can see the system react without touching any code.
 
-With the app running, open a third terminal in the root directory:
+With both the backend and frontend running, open a third terminal in the project root:
 
-### Test 1: The Missing Data Abstention
+**Simulate a missing data source:**
 
 ```bash
 python judge_test.py --test missing_data
 ```
 
-**What to watch:** Hard refresh the browser (Ctrl + Shift + R). The dashboard won't crash. Instead, the CAC card and CFO narrative will throw a red `VALIDATION FAILED` or amber `ANALYSIS WITHHELD` badge.
+Hard-refresh the browser (Ctrl/Cmd + Shift + R). Nothing crashes — instead, the affected KPI card and its narrative switch to a `VALIDATION FAILED` or `ANALYSIS WITHHELD` state. What's happening under the hood: marketing spend data disappeared, so the confidence engine can no longer support a full explanation, drops below its threshold, and the system withholds the narrative rather than guessing.
 
-**Why it matters:** Because the marketing spend data vanished, our Semantic Contract dynamically dropped the composite confidence score below our hardcoded 0.60 threshold. The system physically quarantines the LLM, refuses to guess, and asks a Clarifying Question.
-
-### Test 2: Restore to Baseline
+**Put things back:**
 
 ```bash
 python judge_test.py --test restore
 ```
 
-**What to watch:** Hard refresh the browser. The data is restored to the pristine baseline, and the insights return to their fully supported, green states.
+Hard-refresh again and everything returns to its normal, fully-supported state.
 
-*(See `judge_test.py` for additional schema drift and outlier injection scenarios.)*
+(Open `judge_test.py` if you want to see the other scenarios it can simulate, like schema drift or injected outliers.)
 
 ---
 
-## 📊 Automated Testing
-
-To verify the integrity of the data engineering and causal math pipelines:
+## Running the test suite
 
 ```bash
-# Run the 14 pipeline phase gates
+# checks each stage of the pipeline in isolation
 python -m pytest tests/test_phase2_pipeline.py -q
 
-# Run the full-stack smoke test (36 integration checks)
+# full end-to-end integration checks across the whole stack
 python tests/test_phase4_integration.py
 ```
+
+---
+
+## A few design decisions worth knowing about
+
+- **Row/column-level security is enforced in the data layer, not the UI.** Switching to an analyst view doesn't just hide a column visually — the backend physically excludes restricted fields (like unit cost) and rows outside that analyst's region from the response payload.
+- **New products don't break the anomaly detector.** STL decomposition needs a few full seasonal cycles of history to work properly. If a product is too new for that, detection quietly falls back to a simpler rolling z-score instead of erroring out or refusing to analyze it.
+- **Support ticket text is only pulled in when the math justifies it.** We compute a sentiment drift score from ticket volume/language first; only if that shows a statistically meaningful drop do we go retrieve the actual ticket text to use as supporting context — so the LLM isn't fed unstructured text unless there's already numeric evidence something is wrong.
+- **Every LLM call is logged and costed**, down to token counts and fractional cents, so it's possible to see exactly what the narration step is costing at any point.
